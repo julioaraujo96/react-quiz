@@ -4,6 +4,7 @@ import Loader from './components/Loader';
 import Error from './components/Error';
 import Question from './components/Question';
 import NextButton from './components/NextButton';
+import Progress from './components/Progress';
 import { useEffect, useReducer } from 'react';
 import StartScreen from './components/StartScreen';
 
@@ -42,20 +43,23 @@ function reducer(state, action) {
             : state.points,
       };
     case 'nextQuestion':
-      return { ...state, index: state.index + 1, answer: null, };
+      return { ...state, index: state.index + 1, answer: null };
     default:
       throw new Error(`Invalid action ${action.type}`);
   }
 }
 
 export default function App() {
-  const [{ questions, status, index, answer }, dispatch] = useReducer(
+  const [{ questions, status, index, answer, points }, dispatch] = useReducer(
     reducer,
     initialState
   );
 
   const numQuestions = questions.length;
-
+  const maxPossibleQuestions = questions.reduce(
+    (prev, cur) => prev + cur.points,
+    0
+  );
   useEffect(() => {
     fetch('http://localhost:8000/questions')
       .then((res) => res.json())
@@ -74,6 +78,13 @@ export default function App() {
         )}
         {status === 'active' && (
           <>
+            <Progress
+              index={index}
+              numQuestions={numQuestions}
+              points={points}
+              maxPossibleQuestions={maxPossibleQuestions}
+              answer={answer}
+            />
             <Question
               question={questions[index]}
               dispatch={dispatch}
